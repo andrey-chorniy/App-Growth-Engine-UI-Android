@@ -14,7 +14,7 @@ import com.hookmobile.age.AgeUtils;
 import com.hookmobile.age.Discoverer;
 import com.hookmobile.age.Lead;
 
-public class AgePopup implements DialogInterface.OnCancelListener,
+public class InvitationUI implements DialogInterface.OnCancelListener,
 		DialogInterface.OnDismissListener {
 
 	private static final int SHOW_LIST_DIALOG = 1;
@@ -64,7 +64,7 @@ public class AgePopup implements DialogInterface.OnCancelListener,
 	 * @param title
 	 *            title for the Popup
 	 */
-	public AgePopup(Activity parent, String appKey, String title) {
+	public InvitationUI(Activity parent, String appKey, String title) {
 		this.actContect = parent;
 		Discoverer.activate(actContect, appKey);
 

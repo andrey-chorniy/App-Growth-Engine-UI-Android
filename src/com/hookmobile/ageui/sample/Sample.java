@@ -9,21 +9,21 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.hookmobile.ageui.sample.R;
-import com.hookmobile.ageui.AgePopup;
+import com.hookmobile.ageui.InvitationUI;
 import com.hookmobile.ageui.InvitationListener;
 
 public class Sample extends Activity {
 
 	private String appKey = "2a6d3d56-d775-4509-85fb-d23517d62511";
 	private Button showButton;
-	private AgePopup agepopupView;
+	private InvitationUI agepopupView;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
 
-		agepopupView = new AgePopup(this, appKey, "Get Points");
+		agepopupView = new InvitationUI(this, appKey, "Get Points");
 
 		showButton = (Button) findViewById(R.id.button1);
 		showButton.setText("Show AGE Popup");
