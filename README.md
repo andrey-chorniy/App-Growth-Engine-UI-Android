@@ -5,8 +5,8 @@ AGE Invitation UI is a drop-in Android control that you can deploy to your app w
 # Getting Sample App Up and Running
 A sample app is included with this project that demonstrate AGE Invitation UI launched from a button.  Once you download and import the AgeUI folder into an Eclipse Android project, click on run.  You may launch the sample app in the emulator or your Android device.  Running on your Android phone is preferred because you are likely to have more contacts in your phone address book to invite from.    
 
-[![](https://dl.dropbox.com/s/izxzj9qxrgl2axd/AGEUI1.PNG)](https://www.dropbox.com/s/izxzj9qxrgl2axd/AGEUI1.PNG)
-[![](https://dl.dropbox.com/s/pm1uzrjn1p1dk9v/AGEUI2.PNG)](https://www.dropbox.com/s/pm1uzrjn1p1dk9v/AGEUI2.PNG)
+[![](https://dl.dropbox.com/s/yr0wcs0dpm79552/ageui_android1.png)](https://dl.dropbox.com/s/yr0wcs0dpm79552/ageui_android1.png)
+[![](https://dl.dropbox.com/s/6vq3rktozsin91w/ageui_android2.png)](https://dl.dropbox.com/s/6vq3rktozsin91w/ageui_android2.png)
 
 When AGE Invitation UI is invoked for first time, it will analyze the address book.  It may take a few seconds before the list of suggested contacts is displayed.  The list of contacts shown in the list is filtered by criteria you define for your app profile in our developer portal.  
 
