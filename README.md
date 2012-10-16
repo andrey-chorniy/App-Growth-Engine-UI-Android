@@ -21,12 +21,12 @@ Now that you have a good understanding of the AGE Invitation UI, you are ready t
 
 Next, add the following permissions into your project's Manifest file:
 
-<pre><code><uses-permission android:name="android.permission.INTERNET" />
-    	<uses-permission android:name="android.permission.READ_CONTACTS" />
-	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    	<uses-permission android:name="android.permission.SEND_SMS" />
-    	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /></code></pre>
+<pre><code>\<uses-permission android:name="android.permission.INTERNET" />
+    	\<uses-permission android:name="android.permission.READ_CONTACTS" />
+	\<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    	\<uses-permission android:name="android.permission.SEND_SMS" />
+    	\<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    	\<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /></code></pre>
 
 
 # Use the Invitation Plug-in
