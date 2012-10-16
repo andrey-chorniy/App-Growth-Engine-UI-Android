@@ -85,7 +85,7 @@ import com.hookmobile.ageui.AgeUI;
 
 public class Agepopupsample extends Activity {
 
-	private String appKey = "2a6d3d56-d775-4509-85fb-d23517d62511";
+	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
 	private AgePopup agepopupView;
 
