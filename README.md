@@ -108,9 +108,9 @@ public class Sample extends Activity {
 		InvitationListener sendlistener = new InvitationListener() {
 
 			@Override
-			public void onClick(List<String> phoneList) {
+			public void onClick(List&lt;String&gt; phoneList) {
 				System.out.println(phoneList.size());
-				for(int i=0;i<phoneList.size();i\+\+){
+				for(int i=0;i&lt;phoneList.size();i++){
 					System.out.println(phoneList.get(i));
 				}
 			}
