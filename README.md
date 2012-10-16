@@ -110,7 +110,7 @@ public class Sample extends Activity {
 			@Override
 			public void onClick(List<String> phoneList) {
 				System.out.println(phoneList.size());
-				for(int i=0;i<phoneList.size();i++){
+				for(int i=0;i<phoneList.size();i\+\+){
 					System.out.println(phoneList.get(i));
 				}
 			}
