@@ -14,6 +14,6 @@ class CheckListViewItem {
 	public CheckListViewItem(String name, String phone) {
 		this.name = name;
 		this.phone = phone;
-		this.checkState = true;
+		this.checkState = false;
 	}
 }
