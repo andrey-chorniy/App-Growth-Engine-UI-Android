@@ -32,48 +32,15 @@ Next, add the following permissions into your project's Manifest file:
 # Use the Invitation Plug-in
 
 Popup must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the Popup component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
-* Define a class variable of type AgePopup in the Activity class.  Name the variable agepopupView.  
+* Define a class variable of type InvitationUI in the Activity class.  Name the variable invitationUI.  
 * Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 3 parameters:
 1. Host Activity
 2. App Key assigned by Hookmobile for your app
 3. Name for the AgeUI
 * Modify <code>onPause()</code> methods to pass application state change event to AgeUI component.
 
-Below is a complete example of activity with modification to use the AgeUI Plug-in.
+Below is an example of activity with modification to use the AgeUI Plug-in.
 
-
-<pre><code>private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
-private AgeUI agepopupView;
-
-
-@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_agepopup);
-
-		agepopupView = new AgePopup(this, appKey, "Get Points");
-
-	}</code></pre>
-
-
-To Show the Age Invitation UI:
-
-<pre><code>agepopupView.showView();
-
-
-@Override
-	protected void onPause() {
-		super.onPause();
-
-		agepopupView.cleanup();
-	}</code></pre>
-
-
-
-
-
-
-Sample Code:
 
 <pre><code>package com.hookmobile.ageui.sample;
 
