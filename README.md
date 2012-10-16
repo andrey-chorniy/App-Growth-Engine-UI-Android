@@ -21,12 +21,12 @@ Now that you have a good understanding of the AGE Invitation UI, you are ready t
 
 Next, add the following permissions into your project's Manifest file:
 
-<pre><code>\<uses-permission android:name="android.permission.INTERNET" />
-    	\<uses-permission android:name="android.permission.READ_CONTACTS" />
-	\<uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    	\<uses-permission android:name="android.permission.SEND_SMS" />
-    	\<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    	\<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /></code></pre>
+<pre><code>&lt;uses-permission android:name="android.permission.INTERNET"&gt;
+    	&lt;uses-permission android:name="android.permission.READ_CONTACTS"&gt;
+	&lt;uses-permission android:name="android.permission.READ_PHONE_STATE"&gt;
+    	&lt;uses-permission android:name="android.permission.SEND_SMS"&gt;
+    	&lt;uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"&gt;
+    	&lt;uses-permission android:name="android.permission.ACCESS_WIFI_STATE"&gt;</code></pre>
 
 
 # Use the Invitation Plug-in
@@ -42,8 +42,8 @@ Popup must be added to an existing Activity within your app.  If you have multip
 Below is a complete example of activity with modification to use the Age Popup Plug-in.
 
 
-private String appKey = "2a6d3d56-d775-4509-85fb-d23517d62511";
-private AgePopup agepopupView;
+private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
+private AgeUI agepopupView;
 
 
 @Override
@@ -81,7 +81,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.hookmobile.agepopup.AgePopup;
+import com.hookmobile.ageui.AgeUI;
 
 public class Agepopupsample extends Activity {
 
