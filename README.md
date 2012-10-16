@@ -33,13 +33,13 @@ Next, add the following permissions into your project's Manifest file:
 
 Popup must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the Popup component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
 * Define a class variable of type AgePopup in the Activity class.  Name the variable agepopupView.  
-* Modify the onCreate() within your Activity to initialize the tab variable.  In the AgePopup constructor, you will need to pass 3 parameters:
+* Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 3 parameters:
 1. Host Activity
 2. App Key assigned by Hookmobile for your app
-3. Name for the Popup
-* Modify onPause() methods to pass application state change event to AgePopup component.
+3. Name for the AgeUI
+* Modify <code>onPause()</code> methods to pass application state change event to AgeUI component.
 
-Below is a complete example of activity with modification to use the Age Popup Plug-in.
+Below is a complete example of activity with modification to use the AgeUI Plug-in.
 
 
 <pre><code>private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
@@ -56,7 +56,7 @@ private AgeUI agepopupView;
 	}</code></pre>
 
 
-To Show the Popup:
+To Show the Age Invitation UI:
 
 <pre><code>agepopupView.showView();
 
@@ -75,36 +75,55 @@ To Show the Popup:
 
 Sample Code:
 
-<pre><code>import android.app.Activity;
+<pre><code>package com.hookmobile.ageui.sample;
+
+import java.util.List;
+
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.hookmobile.ageui.AgeUI;
+import com.hookmobile.ageui.sample.R;
+import com.hookmobile.ageui.InvitationUI;
+import com.hookmobile.ageui.InvitationListener;
 
-public class Agepopupsample extends Activity {
+public class Sample extends Activity {
 
 	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
-	private AgePopup agepopupView;
+	private InvitationUI invitationUI;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
 
-		agepopupView = new AgePopup(this, appKey, "Get Points");
+		invitationUI = new InvitationUI(this, appKey, "Get Points");
 
 		showButton = (Button) findViewById(R.id.button1);
-		showButton.setText("Show AGE Popup");
+		showButton.setText("Show AGE UI");
+
+		InvitationListener sendlistener = new InvitationListener() {
+
+			@Override
+			public void onClick(List<String> phoneList) {
+				System.out.println(phoneList.size());
+				for(int i=0;i<phoneList.size();i++){
+					System.out.println(phoneList.get(i));
+				}
+			}
+		};
+		
+		invitationUI.setInvitationListener(sendlistener);
 
 		showButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 
-				agepopupView.showView();
+				invitationUI.showView();
 
 			}
 		});
@@ -115,10 +134,11 @@ public class Agepopupsample extends Activity {
 	protected void onPause() {
 		super.onPause();
 
-		agepopupView.cleanup();
+		invitationUI.cleanup();
 	}
 
-}</code></pre>
+}
+</code></pre>
 
 
 We understand that you may want a look and feel that is completely different from what AGE Invitation offers.  You can still take advantage of AGE invitation API by integrating with <a href="https://github.com/hookmobile/App-Growth-Engine-iOS-SDK" target="_blank">AGE SDK</a>.  
