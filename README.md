@@ -17,55 +17,108 @@ Select one or more entries from the suggested and click on the <b>Send</b> butto
 The message is completely customizable by you, and it can be further personalized to include the sender and app name.
 
 # Integration Setup
-Now that you have a good understanding of the AGE Invitation UI, you are ready to integrate AGE Invitation UI into your app.  The first step is to copy all the necessary files into your Xcode project.  AGE Invitation UI requires linking with following system libraries:
+Now that you have a good understanding of the AGE Invitation UI, you are ready to integrate AGE Invitation UI into your app.  Import the Agepopup.jar file into your application project and add it to the project buildpath. 
 
-* AddressBook.Framework
-* MessageUI.Framework
-* QuartzCore.Framework
+Next, add the following permissions into your project's Manifest file:
 
-AGE Invitation UI depends on following third party open-source libraries.  Source codes for these libraries are included in this project.
+<pre><code><uses-permission android:name="android.permission.INTERNET" />
+    	<uses-permission android:name="android.permission.READ_CONTACTS" />
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    	<uses-permission android:name="android.permission.SEND_SMS" />
+    	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /></code></pre>
 
-* <a href="https://github.com/jdg/MBProgressHUD" target="_blank">MBProgressHUD</a>
-* <a href="https://github.com/Sephiroth87/ODRefreshControl" target="_blank">ODRefreshControl</a>
-* <a href="https://github.com/ylechelle/OpenUDID" target="_blank">OpenUDID</a>
-* <a href="https://github.com/groopd/SBJSON-library" target="_blank">SBJson</a>
 
-# Integration Point
+# Use the Invitation Plug-in
 
-AGE Invitation UI should literally take minutes to integrate because there is only one integration point to your existing app.  You just need to decide when and how to trigger the AGE Invitation UI.  <i>E.g. Do you want to trigger it from a Share button or from an time or conditional event?</i>  
+Popup must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the Popup component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
+* Define a class variable of type AgePopup in the Activity class.  Name the variable agepopupView.  
+* Modify the onCreate() within your Activity to initialize the tab variable.  In the AgePopup constructor, you will need to pass 3 parameters:
+1. Host Activity
+2. App Key assigned by Hookmobile for your app
+3. Name for the Popup
+* Modify onPause() methods to pass application state change event to AgePopup component.
 
-The following sample code snipet demonstrate launching AGE Invitation UI:
+Below is a complete example of activity with modification to use the Age Popup Plug-in.
 
-<pre><code>- (void)showListView
-{
-    HKInviteView *inviteView = [[HKInviteView alloc] initWithKey:@"Your-App-Key"
-                                                     title:@"Suggested Contacts" 
-                                              sendBtnLabel:@"Invite"];
-    inviteView.delegate = self;
-    [inviteView showInView:self.window animated:YES];
-    [inviteView release];
-}</code></pre>
 
-Note that in above example, it is passing self as the delegate for receiving message from <code>inviteView</code>.  The assigned delegate can receive two types of messages: <code>invitedCount:count</code> and <code>invitedCancelled</code>.  <code>invitedCount:count</code> message is sent to delegate when app user invited one or more recipients so the host app can keep counter of invitation sent.  The <code>invitedCancelled</code> message is sent to delegate when app user cancelled out of the AGE Invitation UI dialog.  
+private String appKey = "2a6d3d56-d775-4509-85fb-d23517d62511";
+private AgePopup agepopupView;
 
-Below sample code snippet illustrates implementation of the delegate protocol by the host app:
 
-<pre><code>#pragma mark - HKInvite delegates
-- (void)invitedCount:(NSInteger)count;
-{
-    _infoLabel.text = [NSString stringWithFormat:@"You have shared this app with %d friends", count];
+@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_agepopup);
+
+		agepopupView = new AgePopup(this, appKey, "Get Points");
+
+	}
+
+
+To Show the Popup:
+
+agepopupView.showView();
+
+
+@Override
+	protected void onPause() {
+		super.onPause();
+
+		agepopupView.cleanup();
+	}
+
+
+
+
+
+
+Sample Code:
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+
+import com.hookmobile.agepopup.AgePopup;
+
+public class Agepopupsample extends Activity {
+
+	private String appKey = "2a6d3d56-d775-4509-85fb-d23517d62511";
+	private Button showButton;
+	private AgePopup agepopupView;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_agepopup);
+
+		agepopupView = new AgePopup(this, appKey, "Get Points");
+
+		showButton = (Button) findViewById(R.id.button1);
+		showButton.setText("Show AGE Popup");
+
+		showButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+
+				agepopupView.showView();
+
+			}
+		});
+
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		agepopupView.cleanup();
+	}
+
 }
 
-- (void)inviteCancelled
-{
-    _infoLabel.text = @"You have cancelled from sharing";
-}
-</code></pre>
-
-#UI Customization
-You may customize the look and feel of the AGE Invitation UI specifically for your app.  There are few things you can easily tweak with minimal effort:
-
-* Dimension of AGE Invitation UI - You can change the value of <code>#define POPLISTVIEW_SCREENINSET</code> constant defined in <code>HKInviteView.m</code> 
-* Default contact image - You can replace the default image contact.png with another image you provide.
 
 We understand that you may want a look and feel that is completely different from what AGE Invitation offers.  You can still take advantage of AGE invitation API by integrating with <a href="https://github.com/hookmobile/App-Growth-Engine-iOS-SDK" target="_blank">AGE SDK</a>.  
