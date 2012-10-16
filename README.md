@@ -42,7 +42,7 @@ Popup must be added to an existing Activity within your app.  If you have multip
 Below is a complete example of activity with modification to use the Age Popup Plug-in.
 
 
-private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
+<pre><code>private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 private AgeUI agepopupView;
 
 
@@ -53,12 +53,12 @@ private AgeUI agepopupView;
 
 		agepopupView = new AgePopup(this, appKey, "Get Points");
 
-	}
+	}</code></pre>
 
 
 To Show the Popup:
 
-agepopupView.showView();
+<pre><code>agepopupView.showView();
 
 
 @Override
@@ -66,7 +66,7 @@ agepopupView.showView();
 		super.onPause();
 
 		agepopupView.cleanup();
-	}
+	}</code></pre>
 
 
 
@@ -75,7 +75,7 @@ agepopupView.showView();
 
 Sample Code:
 
-import android.app.Activity;
+<pre><code>import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -118,7 +118,7 @@ public class Agepopupsample extends Activity {
 		agepopupView.cleanup();
 	}
 
-}
+}</code></pre>
 
 
 We understand that you may want a look and feel that is completely different from what AGE Invitation offers.  You can still take advantage of AGE invitation API by integrating with <a href="https://github.com/hookmobile/App-Growth-Engine-iOS-SDK" target="_blank">AGE SDK</a>.  
