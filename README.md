@@ -17,7 +17,9 @@ Select one or more entries from the suggested and click on the <b>Send</b> butto
 The message is completely customizable by you, and it can be further personalized to include the sender and app name.
 
 # Integration Setup
-Now that you have a good understanding of the AGE Invitation UI, you are ready to integrate AGE Invitation UI into your app.  Import the Agepopup.jar file into your application project and add it to the project buildpath. 
+Now that you have a good understanding of the AGE Invitation UI, you are ready to integrate AGE Invitation UI into your app.  The first step is to <a href="http://www.hookmobile.com"  target="_blank">signup</a> for an App Key for your app at Hook Mobile developer portal. This App Key will be used in the next section when you start doing your integration.
+
+Next, you need to import the Agepopup.jar file into your application project and add it to the project buildpath. 
 
 Next, add the following permissions into your project's Manifest file:
 
@@ -31,7 +33,7 @@ Next, add the following permissions into your project's Manifest file:
 
 # Use the Invitation Plug-in
 
-Popup must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the Popup component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
+InvitationUI must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the InvitationUI component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
 * Define a class variable of type InvitationUI in the Activity class.  Name the variable invitationUI.  
 * Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 3 parameters:
 1. Host Activity
@@ -108,4 +110,4 @@ public class Sample extends Activity {
 </code></pre>
 
 
-We understand that you may want a look and feel that is completely different from what AGE Invitation offers.  You can still take advantage of AGE invitation API by integrating with <a href="https://github.com/hookmobile/App-Growth-Engine-iOS-SDK" target="_blank">AGE SDK</a>.  
+We understand that you may want a look and feel that is completely different from what AGE Invitation offers.  You can still take advantage of AGE invitation API by integrating with <a href="https://github.com/hookmobile/App-Growth-Engine-Android-SDK" target="_blank">AGE SDK</a>.  
