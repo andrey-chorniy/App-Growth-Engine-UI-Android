@@ -21,6 +21,7 @@ import static com.hookmobile.age.AgeConstants.P_PHONE;
 import static com.hookmobile.age.AgeConstants.P_REFERENCE;
 import static com.hookmobile.age.AgeConstants.P_REFERRALS;
 import static com.hookmobile.age.AgeConstants.P_REFERRAL_ID;
+import static com.hookmobile.age.AgeConstants.P_INSTALL_REFERRER;
 import static com.hookmobile.age.AgeConstants.P_REFERRAL_MESSAGE;
 import static com.hookmobile.age.AgeConstants.P_SDK_VERSION;
 import static com.hookmobile.age.AgeConstants.P_SEND_NOW;
@@ -44,7 +45,6 @@ import static com.hookmobile.age.AgeUtils.saveLastPhoneCount;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.apache.http.NameValuePair;
@@ -68,8 +68,8 @@ import com.hookmobile.age.AgeClient.AgeResponse;
  */
 public class Discoverer {
 	
-	private static final String AGE_SDK_VERSION = "android/1.0.2";
-	private static final String DEFAULT_REFERRAL = "I thought you might be interested in this app %app%, check it out here %link%";
+	private static final String AGE_SDK_VERSION = "android/1.0.3";
+	private static final String DEFAULT_REFERRAL = "This is a cool app: %app%, check it out here %link%";
 	private static final String INSTALL_CODE_REQUIRED = "Install code not found! Please call discover first.";
 	
 	private static final int FIRST_UPLOAD_SIZE = 200; 
@@ -117,6 +117,7 @@ public class Discoverer {
 		tracker.stopSession();
 		
 	}
+	
 	/**
 	 * Gets the Discoverer. 
 	 * 
@@ -226,15 +227,6 @@ public class Discoverer {
 		TapjoyManager.init(context);
 		newInstallInvokeTime = System.currentTimeMillis();
 		
-		Map<String, String> prefReferrerValue = AgeHelper.retrieveReferralParams(context);
-		/*
-		 * 
-		 * 
-		 * AGE operation with referal data here.
-		 * 
-		 * 
-		 */
-		
 		Thread a = new Thread() {
 			@Override
 			public void run() {
@@ -254,7 +246,10 @@ public class Discoverer {
 						form.add(new BasicNameValuePair(P_ADDRESS_HASH, getAddressHash(context)));
 						form.add(new BasicNameValuePair(P_SDK_VERSION, AGE_SDK_VERSION));
 						form.add(new BasicNameValuePair(P_DEVICE_INFO, getDeviceInfo(context)));
-						
+						String installReferrer = AgeHelper.retrieveInstallReferrer(context);
+						if (installReferrer != null)
+							form.add(new BasicNameValuePair(P_INSTALL_REFERRER, installReferrer));
+
 						AgeResponse response = doPost(url, form);
 						
 						if(response.isSuccess()) {

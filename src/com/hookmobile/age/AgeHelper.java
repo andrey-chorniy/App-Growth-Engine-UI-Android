@@ -168,7 +168,13 @@ class AgeHelper {
 		return params;
 	}
 	
-    static void initTapjoy(Context context) {
+	static String retrieveInstallReferrer(Context context) {
+		SharedPreferences storage = context.getSharedPreferences(
+				"AgeConstants.AGE_PREFERENCES", Context.MODE_PRIVATE);
+		return storage.getString(AgeConstants.P_INSTALL_REFERRER, null);
+	}
+
+	static void initTapjoy(Context context) {
     	Log.i(AGE_LOG, "Tapjoy SDK Version: 1.0.1");
     	
 		try {
@@ -213,7 +219,7 @@ class AgeHelper {
 					Log.i(AGE_LOG, "TRYING TO GET SERIAL OF 2.3+ DEVICE...");
 
 					// THIS CLASS IS ONLY LOADED FOR ANDROID 2.3+
-					TapjoyHardwareUtil hardware = new TapjoyHardwareUtil();
+					TapjoyHardwareUtils hardware = new TapjoyHardwareUtils();
 					serialID = hardware.getSerial();
 
 					// Is there no IMEI or MEID?

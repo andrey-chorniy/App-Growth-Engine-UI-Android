@@ -1,9 +1,9 @@
 package com.hookmobile.age;
 
+import static com.hookmobile.age.AgeConstants.AGE_LOG;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -16,96 +16,104 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.util.Log;
 
+/**
+ * Broadcast Receiver for listening to com.android.vending.INSTALL_REFERRER intent.
+ * 
+ * @author kirktsai
+ *
+ */
 public class AgeBroadcast extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 
-		try {
-			final Bundle extras = intent.getExtras();
-			if (extras != null) {
-				extras.containsKey(null);
+		invokeOtherBroadcastReceiver(context, intent);
+
+		workaroundForAndroidSecurityIssue(intent);
+
+		// new extract referr query string and save it
+		if (intent.getAction().equals("com.android.vending.INSTALL_REFERRER")) {
+			String referrer = intent.getStringExtra("referrer");
+			Log.d("onReceive - referrer url string:", referrer);
+			if (referrer != null && referrer.length() > 0) {
+				try {
+					referrer = URLDecoder.decode(referrer, "US-ASCII");
+					storeInstallReferrer(context, referrer);
+				} catch (UnsupportedEncodingException e) {
+					return;
+				}
 			}
-		} catch (final Exception e) {
-			return;
 		}
+	}
 
-		Map<String, String> referralParams = new HashMap<String, String>();
+	/**
+	 * Workaround for Android security issue: http://code.google.com/p/android/issues/detail?id=16006
+	 */
+	private static void workaroundForAndroidSecurityIssue(Intent intent) {
+        try
+        {
+            final Bundle extras = intent.getExtras();
+            if (extras != null) {
+                extras.containsKey(null);
+            }
+        }
+        catch (final Exception e) {
+            return;
+        }
+	}
 
-		if (!intent.getAction().equals("com.android.vending.INSTALL_REFERRER")) {
-			return;
-		}
-
-		String referrer = intent.getStringExtra("referrer");
-		if (referrer == null || referrer.length() == 0) {
-			return;
-		}
-
+	/**
+	 * Invoke other broadcast receiver registered with this app so they receive
+	 * all the app install and referrer data passed from Google Play Store. Please
+	 * read AGE developer guide for more details.
+	 * 
+	 * @param context
+	 * @param intent
+	 */
+	private static void invokeOtherBroadcastReceiver(Context context, Intent intent) {
 		try {
-			referrer = URLDecoder.decode(referrer, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return;
-		}
-
-		String[] params = referrer.split("&");
-		for (String param : params) {
-			System.out.println(param);
-			String[] pair = param.split("=");
-			referralParams.put(pair[0], pair[1]);
-		}
-
-		storeReferralParams(context, referralParams);
-		/*
-		 * 
-		 * 
-		 * AGE has to span a thread to send the referrer information over network to AGE server.
-		 * 
-		 * 
-		 */
-		String packageName = "";
-		try {
-
 			ActivityInfo receiverInfo;
 			receiverInfo = context.getPackageManager().getReceiverInfo(
 					new ComponentName(context, AgeBroadcast.class),
 					PackageManager.GET_META_DATA);
 
 			Bundle bundle = receiverInfo.metaData;
-			if (bundle != null)
-				packageName = bundle.getString("packageName");
-		} catch (NameNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+			if (bundle != null) {
+				String packageName = bundle.getString("packageName");
+				if (packageName != null && packageName.length() != 0) {
+					Log.d("invokeOtherBroadcastReceiver - Loading other broadcast receiver package:", packageName);
 
-		if (packageName != null && packageName.length() != 0) {
-			Log.d("Package Name is :", packageName);
-
-			try {
-				((BroadcastReceiver) Class.forName(packageName).newInstance())
-						.onReceive(context, intent);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+					// try to get instance of "other broadcast receiver" and send notification
+					((BroadcastReceiver) Class.forName(packageName).newInstance())
+					.onReceive(context, intent);
+				}
+			} else {
+				Log.i(AGE_LOG, "invokeOtherBroadcastReceiver - No other broadcast receiver package defined");
 			}
+		} catch (NameNotFoundException e1) {
+			Log.i(AGE_LOG, "invokeOtherBroadcastReceiver - Unable to locate meta data for other broadcast receiver class");
+		} catch (InstantiationException e) {
+			Log.w(AGE_LOG, "invokeOtherBroadcastReceiver - Unable to load other broadcast receiver", e);
+		} catch (IllegalAccessException e) {
+			Log.w(AGE_LOG, "invokeOtherBroadcastReceiver - Unable to load other broadcast receiver", e);
+		} catch (ClassNotFoundException e) {
+			Log.w(AGE_LOG, "invokeOtherBroadcastReceiver - Unable to load other broadcast receiver", e);
 		}
-	}
 
-	public void storeReferralParams(Context context, Map<String, String> params) {
+	}
+	
+	/**
+	 * Save install referrer query string into app for later retrieval
+	 * @param context
+	 * @param referrer
+	 */
+	private static void storeInstallReferrer(Context context, String referrer) {
 		SharedPreferences storage = context.getSharedPreferences(
 				"AgeConstants.AGE_PREFERENCES", Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = storage.edit();
-
-		for (String key : AgeConstants.EXPECTED_PARAMETERS) {
-			String value = params.get(key);
-			if (value != null) {
-				// System.out.println(value);
-				editor.putString(key, value);
-			}
-		}
+		editor.putString(AgeConstants.P_INSTALL_REFERRER, referrer);
+		Log.d("storeInstallReferrer - save key:" + AgeConstants.P_INSTALL_REFERRER + " value:", referrer);
 		editor.commit();
 	}
+
 }

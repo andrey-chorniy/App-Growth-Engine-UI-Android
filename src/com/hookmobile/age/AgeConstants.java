@@ -22,6 +22,7 @@ class AgeConstants {
 	static final String P_OS_TYPE               = "osType";
 	static final String P_PHONE                 = "phone";
 	static final String P_REFERRAL_ID           = "referralId";
+	static final String P_INSTALL_REFERRER      = "installReferrer";
 	static final String P_REFERRAL_MESSAGE      = "referralMessage";
 	static final String P_REFERRAL_TEMPLATE     = "referralTemplate";
 	static final String P_REFERRALS             = "referrals";
