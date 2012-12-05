@@ -6,11 +6,13 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Handler;
+import android.os.Message;
 
 import com.hookmobile.age.AgeException;
-import com.hookmobile.age.AgeUtils;
+import com.hookmobile.age.utils.AgeUtils;
 import com.hookmobile.age.Discoverer;
 import com.hookmobile.age.Lead;
 
@@ -21,11 +23,19 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	private static final int HIDE_LIST_DIALOG = 2;
 	private static final int SHOW_MESSAGE_DIALOG = 3;
 	private static final int HIDE_MESSAGE_DIALOG = 4;
+	
+	private static final int HANDLE_SHOW_LOADING = 5;
+	private static final int HANDLE_HIDE_LOADING = 6; 
+//	private static int HANDLE_VERIFICATION_STATUS_ENABLE = 7;
+	private static final int HANDLE_SHOW_MESSAGE_DIALOG = 8;
+//	private static int HANDLE_GET_RECOMMENDED_INVITES_BUTTON_ENABLE = 9;
+//	private static int HANDLE_INSTALLS_REFERRALS_ENABLE = 10;
 
 	private CheckListAdapter menuAdapter = null;
 	private Activity actContect = null;
 	private AlertDialog dialog = null;
 	private AlertDialog messageDialog;
+	private ProgressDialog progressDialog;
 
 	private InvitationListener clickHandler = null;
 
@@ -33,6 +43,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case SHOW_LIST_DIALOG:
+				menuAdapter.notifyDataSetChanged();
 				dialog.show();
 				break;
 			case HIDE_LIST_DIALOG:
@@ -47,6 +58,16 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 			case HIDE_MESSAGE_DIALOG:
 				if (messageDialog != null)
 					messageDialog.dismiss();
+				break;
+			case HANDLE_SHOW_LOADING:
+				progressDialog.show();
+				break;
+			case HANDLE_HIDE_LOADING:
+				progressDialog.cancel();
+				break;
+			case HANDLE_SHOW_MESSAGE_DIALOG:
+				String[] content = (String[])msg.obj;
+				showErrorDialog(content[0], content[1], content[2]);
 				break;
 			default:
 				break;
@@ -69,6 +90,10 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		Discoverer.activate(actContect, appKey);
 
 		menuAdapter = new CheckListAdapter(actContect);
+		
+		progressDialog = new ProgressDialog(parent);
+		progressDialog.setMessage("Please Wait...");
+		progressDialog.setCancelable(false);
 
 		createView(title);
 	}
@@ -87,6 +112,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public Dialog createView(String title) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(actContect);
 
@@ -100,25 +126,39 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		dialog.setButton("Send", new DialogInterface.OnClickListener() {
 
 			public void onClick(DialogInterface dialog, int which) {
-				List<String> phoneList = new ArrayList<String>();
-				for (int i = 0; i < menuAdapter.getCount(); i++) {
-					String phoneNo = null;
-					CheckListViewItem chkListItem = (CheckListViewItem) menuAdapter
-							.getItem(i);
-					if (chkListItem.checkState) {
-						phoneNo = chkListItem.phone.toString();
-						phoneList.add(phoneNo);
+				
+				Thread a = new Thread() {
+					@Override
+					public void run() {
+						super.run();
+						handler.sendEmptyMessage(HANDLE_SHOW_LOADING);
+						
+						List<String> phoneList = new ArrayList<String>();
+						for (int i = 0; i < menuAdapter.getCount(); i++) {
+							String phoneNo = null;
+							CheckListViewItem chkListItem = (CheckListViewItem) menuAdapter
+									.getItem(i);
+							if (chkListItem.checkState) {
+								phoneNo = chkListItem.phone.toString();
+								phoneList.add(phoneNo);
+							}
+						}
+						
+						if(phoneList.size() > 0) {
+							try {
+								Discoverer.getInstance().newReferral(phoneList, true, "John");
+								
+								showMessage(new String[] {"Finished", "Referral Success.", "Dismiss"});
+							}
+							catch(AgeException e) {
+								showMessage(new String[] {"Error", e.getMessage() != null ? e.getMessage() : "Referral Error", "Dismiss"});
+							}
+						}
+						handler.sendEmptyMessage(HANDLE_HIDE_LOADING);
 					}
-				}
-
-				try {
-					Discoverer.getInstance().newReferral(phoneList, true, null);
-					if (clickHandler != null) {
-						clickHandler.onClick(phoneList);
-					}
-				} catch (AgeException e) {
-					e.printStackTrace();
-				}
+				};
+				a.start();
+				a = null;
 
 			}
 		});
@@ -136,19 +176,31 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 
 	public void showView() {
 		if (AgeUtils.isOnline(actContect)) {
-			try {
-				menuAdapter.clearAdapter();
-				Discoverer.getInstance().discover();
-				List<Lead> lead = null;
-				lead = Discoverer.getInstance().queryLeads();
 
-				addList(lead);
-				menuAdapter.notifyDataSetChanged();
-			} catch (AgeException e) {
-				e.printStackTrace();
-			}
+			menuAdapter.clearAdapter();
 
-			handler.sendMessage(handler.obtainMessage(SHOW_LIST_DIALOG));
+			Thread a = new Thread() {
+				@Override
+				public void run() {
+					super.run();
+					handler.sendEmptyMessage(HANDLE_SHOW_LOADING);
+					
+					try {
+						Discoverer.getInstance().discover();
+						addList(Discoverer.getInstance().queryLeads());
+						
+					} catch (AgeException e) {
+						 displayError(e);
+					}
+
+					handler.sendEmptyMessage(HANDLE_HIDE_LOADING);
+					handler.sendMessage(handler.obtainMessage(SHOW_LIST_DIALOG));
+				}
+			};
+			a.start();
+			a = null;
+
+			
 		} else {
 			handler.sendMessage(handler.obtainMessage(SHOW_MESSAGE_DIALOG));
 		}
@@ -179,6 +231,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void showMessageDialog(String title, String message,
 			String buttonText1, String buttonText2) {
 
@@ -204,6 +257,38 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 						}
 					});
 		messageDialog.show();
+	}
+	
+	private void displayError(AgeException e) {
+		String body = "Hook Mobile server encountered a problem: ";
+		
+		if(e.getMessage() != null) {
+			body += e.getMessage();
+		}
+		else {
+			body += "Unknown Error";
+		}
+		
+		showMessage(new String[] {"Finished", body, "Dismiss"});
+	}
+	
+	private void showMessage(String[] content) {
+		Message msg = handler.obtainMessage();
+		msg.what = HANDLE_SHOW_MESSAGE_DIALOG;
+		msg.obj = content;
+		handler.sendMessage(msg);
+	}
+	
+	private void showErrorDialog(String title, String message, String buttonText) {
+		new AlertDialog.Builder(actContect)
+			.setTitle(title)
+			.setMessage(message)
+			.setPositiveButton(buttonText, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+    				
+    			}
+			})
+			.show();
 	}
 
 }
