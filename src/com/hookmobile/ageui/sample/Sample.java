@@ -14,7 +14,7 @@ import com.hookmobile.ageui.InvitationListener;
 
 public class Sample extends Activity {
 
-	private String appKey = "Your-App-Key";
+	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
 	private InvitationUI agepopupView;
 
