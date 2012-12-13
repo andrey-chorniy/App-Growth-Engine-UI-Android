@@ -132,7 +132,8 @@ class CheckListAdapter extends BaseAdapter {
 
 		textView.setTag(item);
 		textView.setText(item.name);
-
+		textView.setTextColor(Color.WHITE);
+		
 		return ll;
 	}
 
