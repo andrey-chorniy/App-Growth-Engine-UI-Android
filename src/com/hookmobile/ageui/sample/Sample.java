@@ -17,13 +17,14 @@ public class Sample extends Activity {
 	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
 	private InvitationUI agepopupView;
+	private boolean useVirtualNumber = true;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
 
-		agepopupView = new InvitationUI(this, appKey, "Get Points");
+		agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber);
 
 		showButton = (Button) findViewById(R.id.button1);
 		showButton.setText("Show AGE Popup");

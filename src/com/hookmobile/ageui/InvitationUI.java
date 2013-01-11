@@ -36,7 +36,8 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	private AlertDialog dialog = null;
 	private AlertDialog messageDialog;
 	private ProgressDialog progressDialog;
-
+	private boolean useVirtualNumber = true;
+	
 	private InvitationListener clickHandler = null;
 
 	private Handler handler = new Handler() {
@@ -86,7 +87,24 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 *            title for the Popup
 	 */
 	public InvitationUI(Activity parent, String appKey, String title) {
+		this(parent, appKey, title, true);
+	}
+
+	/**
+	 * constructor
+	 * 
+	 * @param parent
+	 *            context the Android Activity.
+	 * @param appKey
+	 *            Application Key provided by AGE.
+	 * @param title
+	 *            title for the Popup
+	 * @param useVirtualNumber 
+	 * 			 for sending out invitation.  If false, then use device phone number.
+	 */
+	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber) {
 		this.actContect = parent;
+		this.useVirtualNumber = useVirtualNumber;
 		Discoverer.activate(actContect, appKey);
 
 		menuAdapter = new CheckListAdapter(actContect);
@@ -97,7 +115,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 
 		createView(title);
 	}
-
+	
 	/**
 	 * Set List onclick listener
 	 * 
