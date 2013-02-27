@@ -36,7 +36,6 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	private AlertDialog dialog = null;
 	private AlertDialog messageDialog;
 	private ProgressDialog progressDialog;
-	private boolean useVirtualNumber = true;
 	
 	private InvitationListener clickHandler = null;
 
@@ -99,13 +98,44 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 *            Application Key provided by AGE.
 	 * @param title
 	 *            title for the Popup
+	 * @param customParam custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 */
+	public InvitationUI(Activity parent, String appKey, String title, String customParam) {
+		this(parent, appKey, title, true, customParam);
+	}
+
+	/**
+	 * constructor
+	 * 
+	 * @param parent
+	 *            context the Android Activity.
+	 * @param appKey
+	 *            Application Key provided by AGE.
+	 * @param title
+	 *            title for the Popup
 	 * @param useVirtualNumber 
 	 * 			 for sending out invitation.  If false, then use device phone number.
 	 */
 	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber) {
+		this(parent, appKey, title, useVirtualNumber, null);
+	}
+	
+	/**
+	 * constructor
+	 * 
+	 * @param parent
+	 *            context the Android Activity.
+	 * @param appKey
+	 *            Application Key provided by AGE.
+	 * @param title
+	 *            title for the Popup
+	 * @param useVirtualNumber 
+	 * 			 for sending out invitation.  If false, then use device phone number.
+	 * @param customParam custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 */
+	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber, String customParam) {
 		this.actContect = parent;
-		this.useVirtualNumber = useVirtualNumber;
-		Discoverer.activate(actContect, appKey);
+		Discoverer.activate(actContect, appKey, customParam);
 
 		menuAdapter = new CheckListAdapter(actContect);
 		
@@ -113,7 +143,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		progressDialog.setMessage("Please Wait...");
 		progressDialog.setCancelable(false);
 
-		createView(title);
+		createView(title, useVirtualNumber);
 	}
 	
 	/**
@@ -131,7 +161,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * @return
 	 */
 	@SuppressWarnings("deprecation")
-	public Dialog createView(String title) {
+	public Dialog createView(String title, final boolean useVirtualNumber) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(actContect);
 
 		builder.setAdapter(menuAdapter, null);
@@ -164,7 +194,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 						
 						if(phoneList.size() > 0) {
 							try {
-								Discoverer.getInstance().newReferral(phoneList, true, "John");
+								Discoverer.getInstance().newReferral(phoneList, useVirtualNumber, null);
 								
 								showMessage(new String[] {"Finished", "Referral Success.", "Dismiss"});
 							}

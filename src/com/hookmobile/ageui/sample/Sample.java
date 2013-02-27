@@ -17,14 +17,19 @@ public class Sample extends Activity {
 	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
 	private InvitationUI agepopupView;
-	private boolean useVirtualNumber = true;
+	
+	// set to false to send invitation via native SMS from the phone
+	private boolean useVirtualNumber = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
 
-		agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber);
+		// agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber);
+
+		// *** USE following constructor to pass custom parameter such as app assigned user id to AGE to be correlated to specific app install. ***
+		agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber, "custom parameter");
 
 		showButton = (Button) findViewById(R.id.button1);
 		showButton.setText("Show AGE Popup");
