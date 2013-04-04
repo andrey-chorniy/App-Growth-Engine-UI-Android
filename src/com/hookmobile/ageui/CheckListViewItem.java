@@ -1,19 +1,1 @@
-package com.hookmobile.ageui;
-
-class CheckListViewItem {
-	CharSequence name = null;
-	CharSequence phone = null;
-	boolean checkState = false;
-
-	public CheckListViewItem(String name, String phone, boolean checkState) {
-		this.name = name;
-		this.phone = phone;
-		this.checkState = checkState;
-	}
-
-	public CheckListViewItem(String name, String phone) {
-		this.name = name;
-		this.phone = phone;
-		this.checkState = false;
-	}
-}
+package com.hookmobile.ageui;import java.util.HashMap;import java.util.Map;class CheckListViewItem {	String name = null;	// phoneList stores number and whether it is a mobile one.	Map<String, Boolean> phoneList = null;	boolean checkState = false;	public CheckListViewItem(String name, String phone, boolean checkState) {		this.name = name;		this.checkState = checkState;		this.phoneList = new HashMap<String, Boolean>();				this.phoneList.put(phone, true);	}	public CheckListViewItem(String name, String phone) {		this(name, phone, false);	}}

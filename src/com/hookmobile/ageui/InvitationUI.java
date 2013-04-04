@@ -10,6 +10,11 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Gravity;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hookmobile.age.AgeException;
 import com.hookmobile.age.utils.AgeUtils;
@@ -26,13 +31,14 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	
 	private static final int HANDLE_SHOW_LOADING = 5;
 	private static final int HANDLE_HIDE_LOADING = 6; 
-//	private static int HANDLE_VERIFICATION_STATUS_ENABLE = 7;
-	private static final int HANDLE_SHOW_MESSAGE_DIALOG = 8;
-//	private static int HANDLE_GET_RECOMMENDED_INVITES_BUTTON_ENABLE = 9;
-//	private static int HANDLE_INSTALLS_REFERRALS_ENABLE = 10;
+//	private static final int HANDLE_VERIFICATION_STATUS_ENABLE = 7;
+	public static final int HANDLE_SHOW_MESSAGE_DIALOG = 8;
+//	private static final int HANDLE_GET_RECOMMENDED_INVITES_BUTTON_ENABLE = 9;
+//	private static final int HANDLE_INSTALLS_REFERRALS_ENABLE = 10;
+	public static final int HANDLE_DISABLE_CHECK = 11;
 
 	private CheckListAdapter menuAdapter = null;
-	private Activity actContect = null;
+	private Activity actContext = null;
 	private AlertDialog dialog = null;
 	private AlertDialog messageDialog;
 	private ProgressDialog progressDialog;
@@ -40,6 +46,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	private InvitationListener clickHandler = null;
 
 	private Handler handler = new Handler() {
+		@Override
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case SHOW_LIST_DIALOG:
@@ -68,6 +75,26 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 			case HANDLE_SHOW_MESSAGE_DIALOG:
 				String[] content = (String[])msg.obj;
 				showErrorDialog(content[0], content[1], content[2]);
+				break;
+			case HANDLE_DISABLE_CHECK:
+				Toast toast = Toast.makeText(actContext, 
+						"No mobile phone number found for selected contact",
+						Toast.LENGTH_LONG);
+				
+				LinearLayout linearLayout = null;
+			    linearLayout = (LinearLayout) toast.getView();
+			    TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+			    messageTextView.setTextSize(20);
+			    messageTextView.setGravity(Gravity.CENTER);
+			    messageTextView.setTextColor(0xff00bfff);
+				
+				toast.setGravity(Gravity.CENTER, 0, 0);
+				toast.show();
+				
+				CompoundButton buttonView = (CompoundButton) msg.obj;
+				buttonView.setChecked(false);
+				
+				menuAdapter.notifyDataSetChanged();
 				break;
 			default:
 				break;
@@ -114,7 +141,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * @param title
 	 *            title for the Popup
 	 * @param useVirtualNumber 
-	 * 			 for sending out invitation.  If false, then use device phone number.
+	 * 			 for sending out invitation.  If false, then use device phoneList number.
 	 */
 	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber) {
 		this(parent, appKey, title, useVirtualNumber, null);
@@ -130,14 +157,14 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * @param title
 	 *            title for the Popup
 	 * @param useVirtualNumber 
-	 * 			 for sending out invitation.  If false, then use device phone number.
+	 * 			 for sending out invitation.  If false, then use device phoneList number.
 	 * @param customParam custom parameter such as app assigned user_id to be stored for correlation on server callback.
 	 */
 	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber, String customParam) {
-		this.actContect = parent;
-		Discoverer.activate(actContect, appKey, customParam);
+		this.actContext = parent;
+		Discoverer.activate(actContext, appKey, customParam);
 
-		menuAdapter = new CheckListAdapter(actContect);
+		menuAdapter = new CheckListAdapter(actContext, handler);
 		
 		progressDialog = new ProgressDialog(parent);
 		progressDialog.setMessage("Please Wait...");
@@ -160,9 +187,8 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings("deprecation")
 	public Dialog createView(String title, final boolean useVirtualNumber) {
-		final AlertDialog.Builder builder = new AlertDialog.Builder(actContect);
+		final AlertDialog.Builder builder = new AlertDialog.Builder(actContext);
 
 		builder.setAdapter(menuAdapter, null);
 		builder.setInverseBackgroundForced(true);
@@ -173,6 +199,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		dialog.setOnDismissListener(this);
 		dialog.setButton("Send", new DialogInterface.OnClickListener() {
 
+			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				
 				Thread a = new Thread() {
@@ -183,12 +210,14 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 						
 						List<String> phoneList = new ArrayList<String>();
 						for (int i = 0; i < menuAdapter.getCount(); i++) {
-							String phoneNo = null;
+		
 							CheckListViewItem chkListItem = (CheckListViewItem) menuAdapter
 									.getItem(i);
 							if (chkListItem.checkState) {
-								phoneNo = chkListItem.phone.toString();
-								phoneList.add(phoneNo);
+								for(String phone : chkListItem.phoneList.keySet()) {
+									if(chkListItem.phoneList.get(phone)) 
+										phoneList.add(phone);
+								}
 							}
 						}
 						
@@ -223,7 +252,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	}
 
 	public void showView() {
-		if (AgeUtils.isOnline(actContect)) {
+		if (AgeUtils.isOnline(actContext)) {
 
 			menuAdapter.clearAdapter();
 
@@ -254,10 +283,12 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		}
 	}
 
+	@Override
 	public void onCancel(DialogInterface dialog) {
 		cleanup();
 	}
 
+	@Override
 	public void onDismiss(DialogInterface dialog) {
 		cleanup();
 	}
@@ -273,17 +304,20 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 
 		for (Lead lead : leadList) {
 
-			String name = AgeUtils.lookupNameByPhone(actContect,
+			String name = AgeUtils.lookupNameByPhone(actContext,
 					lead.getPhone());
-			menuAdapter.addItem(new CheckListViewItem(name, lead.getPhone()));
+			if(name.length() > 18)
+				name = name.substring(0, 18) + "...";
+			
+			menuAdapter.addItem(name, lead.getPhone());
 		}
+		
 	}
 
-	@SuppressWarnings("deprecation")
 	private void showMessageDialog(String title, String message,
 			String buttonText1, String buttonText2) {
 
-		messageDialog = new AlertDialog.Builder(actContect).create();
+		messageDialog = new AlertDialog.Builder(actContext).create();
 		messageDialog.setCancelable(false);
 		messageDialog.setMessage(message);
 		if (!AgeUtils.isEmptyStr(title)) {
@@ -292,6 +326,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		messageDialog.setButton(buttonText1,
 				new DialogInterface.OnClickListener() {
 
+					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						messageDialog.dismiss();
 					}
@@ -300,6 +335,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 			messageDialog.setButton2(buttonText2,
 					new DialogInterface.OnClickListener() {
 
+						@Override
 						public void onClick(DialogInterface dialog, int which) {
 
 						}
@@ -328,10 +364,11 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	}
 	
 	private void showErrorDialog(String title, String message, String buttonText) {
-		new AlertDialog.Builder(actContect)
+		new AlertDialog.Builder(actContext)
 			.setTitle(title)
 			.setMessage(message)
 			.setPositiveButton(buttonText, new DialogInterface.OnClickListener() {
+				@Override
 				public void onClick(DialogInterface dialog, int which) {
     				
     			}
