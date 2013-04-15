@@ -2,47 +2,69 @@ package com.hookmobile.ageui;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
+import android.graphics.drawable.PaintDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.os.Handler;
 import android.os.Message;
+import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hookmobile.age.AgeException;
 import com.hookmobile.age.utils.AgeUtils;
+
 import com.hookmobile.age.Discoverer;
 import com.hookmobile.age.Lead;
 
 public class InvitationUI implements DialogInterface.OnCancelListener,
-		DialogInterface.OnDismissListener {
+		DialogInterface.OnDismissListener{
 
-	private static final int SHOW_LIST_DIALOG = 1;
+	public static final int SHOW_LIST_DIALOG = 1;
 	private static final int HIDE_LIST_DIALOG = 2;
 	private static final int SHOW_MESSAGE_DIALOG = 3;
-	private static final int HIDE_MESSAGE_DIALOG = 4;
-	
-	private static final int HANDLE_SHOW_LOADING = 5;
+	private static final int HIDE_MESSAGE_DIALOG = 4;	
+	public static final int HANDLE_SHOW_LOADING = 5;
 	private static final int HANDLE_HIDE_LOADING = 6; 
-//	private static final int HANDLE_VERIFICATION_STATUS_ENABLE = 7;
+	private static final int HANDLE_SHOW_TOAST = 7;
 	public static final int HANDLE_SHOW_MESSAGE_DIALOG = 8;
-//	private static final int HANDLE_GET_RECOMMENDED_INVITES_BUTTON_ENABLE = 9;
-//	private static final int HANDLE_INSTALLS_REFERRALS_ENABLE = 10;
+	public static final int HANDLE_EXTEND_LIST_COMPLETE = 9;
 	public static final int HANDLE_DISABLE_CHECK = 11;
+	private static final int HANDLE_SHOW_TOAST_WARNING = 12;
 
 	private CheckListAdapter menuAdapter = null;
 	private Activity actContext = null;
-	private AlertDialog dialog = null;
+	private Dialog dialog = null;
 	private AlertDialog messageDialog;
-	private ProgressDialog progressDialog;
-	
+	private Dialog progressDialog;
+	private Toast toast;
+	private int displayWidth;
+	private int displayHeight;
+	// Message shown when the contact's device doesn't support the app or the number is unavailable.
+	private static String contactDeviceNotSupportedMsg = "This user's device doesn't support this app.";
+
+	public static void setContactDeviceNotSupportedMsg(
+			String contactDeviceNotSupportedMsg) {
+		InvitationUI.contactDeviceNotSupportedMsg = contactDeviceNotSupportedMsg;
+	}
+
 	private InvitationListener clickHandler = null;
 
 	private Handler handler = new Handler() {
@@ -50,16 +72,31 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case SHOW_LIST_DIALOG:
-				menuAdapter.notifyDataSetChanged();
+				
+				menuAdapter.notifyDataSetChanged();	
+				//Set dialog size
+				dialog.getWindow().setLayout(displayWidth, displayHeight);
 				dialog.show();
 				break;
 			case HIDE_LIST_DIALOG:
 				dialog.dismiss();
 				handler.sendMessage(handler.obtainMessage(HIDE_MESSAGE_DIALOG));
 				break;
+			case HANDLE_SHOW_TOAST:
+				toast.setText("Referral Success!");
+				toast.setDuration(Toast.LENGTH_SHORT);
+				toast.show();
+				dialog.dismiss();
+				handler.sendMessage(handler.obtainMessage(HIDE_MESSAGE_DIALOG));
+				break;
+			case HANDLE_SHOW_TOAST_WARNING:
+				toast.setText("No Contact Selected!");
+				toast.setDuration(Toast.LENGTH_LONG);
+				toast.show();
+				break;
 			case SHOW_MESSAGE_DIALOG:
 				showMessageDialog("No Internet Connection",
-						"AGE needs Internet Connection to be present",
+						"Wifi or data service not available",
 						"Dismiss", null);
 				break;
 			case HIDE_MESSAGE_DIALOG:
@@ -70,25 +107,20 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 				progressDialog.show();
 				break;
 			case HANDLE_HIDE_LOADING:
-				progressDialog.cancel();
+				progressDialog.cancel();				
 				break;
 			case HANDLE_SHOW_MESSAGE_DIALOG:
 				String[] content = (String[])msg.obj;
 				showErrorDialog(content[0], content[1], content[2]);
 				break;
+			case HANDLE_EXTEND_LIST_COMPLETE:
+				menuAdapter.notifyDataSetChanged();	
+				dialog.show();
+				progressDialog.cancel();
+				break;
 			case HANDLE_DISABLE_CHECK:
-				Toast toast = Toast.makeText(actContext, 
-						"No mobile phone number found for selected contact",
-						Toast.LENGTH_LONG);
-				
-				LinearLayout linearLayout = null;
-			    linearLayout = (LinearLayout) toast.getView();
-			    TextView messageTextView = (TextView) linearLayout.getChildAt(0);
-			    messageTextView.setTextSize(20);
-			    messageTextView.setGravity(Gravity.CENTER);
-			    messageTextView.setTextColor(0xff00bfff);
-				
-				toast.setGravity(Gravity.CENTER, 0, 0);
+				toast.setText(contactDeviceNotSupportedMsg);
+				toast.setDuration(Toast.LENGTH_LONG);
 				toast.show();
 				
 				CompoundButton buttonView = (CompoundButton) msg.obj;
@@ -102,6 +134,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		};
 	};
 
+
 	/**
 	 * constructor
 	 * 
@@ -113,7 +146,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 *            title for the Popup
 	 */
 	public InvitationUI(Activity parent, String appKey, String title) {
-		this(parent, appKey, title, true);
+		this(parent, appKey, title, true, true);
 	}
 
 	/**
@@ -125,10 +158,29 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 *            Application Key provided by AGE.
 	 * @param title
 	 *            title for the Popup
-	 * @param customParam custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 * @param customParam 
+	 *            custom parameter such as app assigned user_id to be stored for correlation on server callback.
 	 */
 	public InvitationUI(Activity parent, String appKey, String title, String customParam) {
-		this(parent, appKey, title, true, customParam);
+		this(parent, appKey, title, true, customParam, true);
+	}
+	
+	/**
+	 * constructor
+	 * 
+	 * @param parent
+	 *            context the Android Activity.
+	 * @param appKey
+	 *            Application Key provided by AGE.
+	 * @param title
+	 *            title for the Popup
+	 * @param customParam 
+	 *           custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 * @param isDisplayPhoto
+	 *           whether display contact's photo in the list or not.
+	 */
+	public InvitationUI(Activity parent, String appKey, String title, String customParam, boolean isDisplayPhoto) {
+		this(parent, appKey, title, true, customParam, isDisplayPhoto);
 	}
 
 	/**
@@ -144,7 +196,25 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 * 			 for sending out invitation.  If false, then use device phoneList number.
 	 */
 	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber) {
-		this(parent, appKey, title, useVirtualNumber, null);
+		this(parent, appKey, title, useVirtualNumber, null, true);
+	}
+
+	/**
+	 * constructor
+	 * 
+	 * @param parent
+	 *            context the Android Activity.
+	 * @param appKey
+	 *            Application Key provided by AGE.
+	 * @param title
+	 *            title for the Popup
+	 * @param useVirtualNumber 
+	 * 			 for sending out invitation.  If false, then use device phoneList number.
+	 * @param isDisplayPhoto
+	 *           whether display contact's photo in the list or not.
+	 */
+	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber, boolean isDisplayPhoto) {
+		this(parent, appKey, title, useVirtualNumber, null, isDisplayPhoto);
 	}
 	
 	/**
@@ -158,21 +228,31 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	 *            title for the Popup
 	 * @param useVirtualNumber 
 	 * 			 for sending out invitation.  If false, then use device phoneList number.
-	 * @param customParam custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 * @param customParam 
+	 *           custom parameter such as app assigned user_id to be stored for correlation on server callback.
+	 * @param isDisplayPhoto
+	 *           whether display contact's photo in the list or not.
 	 */
-	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber, String customParam) {
+	public InvitationUI(Activity parent, String appKey, String title, boolean useVirtualNumber, String customParam, boolean isDisplayPhoto) {
 		this.actContext = parent;
+		
 		Discoverer.activate(actContext, appKey, customParam);
 
-		menuAdapter = new CheckListAdapter(actContext, handler);
+		//Set width and height of dialog
+		WindowManager wm = actContext.getWindowManager();
+		displayWidth = wm.getDefaultDisplay().getWidth() * 5 / 6;
+		displayHeight = wm.getDefaultDisplay().getHeight() * 5 / 6;
 		
-		progressDialog = new ProgressDialog(parent);
-		progressDialog.setMessage("Please Wait...");
-		progressDialog.setCancelable(false);
+		menuAdapter = new CheckListAdapter(actContext, handler, displayWidth, isDisplayPhoto);
+		
+		progressDialog = new Dialog(parent, getResourceIdByName(actContext.getPackageName(), "style", "SpinnerDialog"));
+		progressDialog.setCancelable(true);
+		ProgressBar mProgressBar = new ProgressBar(parent);
+		progressDialog.setContentView(mProgressBar, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
 		createView(title, useVirtualNumber);
 	}
-	
+
 	/**
 	 * Set List onclick listener
 	 * 
@@ -183,34 +263,98 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	}
 
 	/**
-	 * Create Dialog
+	 * Create Dialog.
 	 * 
 	 * @return
 	 */
+	@SuppressLint("NewApi")
 	public Dialog createView(String title, final boolean useVirtualNumber) {
-		final AlertDialog.Builder builder = new AlertDialog.Builder(actContext);
 
-		builder.setAdapter(menuAdapter, null);
-		builder.setInverseBackgroundForced(true);
-
-		dialog = builder.create();
-		dialog.setTitle(title);
+		dialog = new Dialog(actContext, getResourceIdByName(actContext.getPackageName(), "style", "ListDialog"));
 		dialog.setOnCancelListener(this);
 		dialog.setOnDismissListener(this);
-		dialog.setButton("Send", new DialogInterface.OnClickListener() {
+		dialog.setCanceledOnTouchOutside(true);
+		
+		// Set layout, alpha and corner shape
+		Window window = dialog.getWindow();
+		WindowManager.LayoutParams layoutParams = window.getAttributes();
+		layoutParams.alpha = 0.8f;
+		window.setAttributes(layoutParams);
+		ShapeDrawable dialogShape = new ShapeDrawable(new RectShape());
+		dialogShape.setAlpha(0);
+		window.setBackgroundDrawable(dialogShape);
+				
+		// Set LinearLayout
+		LinearLayout ll = new LinearLayout(actContext);
+		ll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		ll.setGravity(Gravity.CENTER_HORIZONTAL);
+		ll.setOrientation(LinearLayout.VERTICAL);
+		PaintDrawable listShape = new PaintDrawable();
+		listShape.setCornerRadius(10.0f);
+		ll.setBackgroundDrawable(listShape);
+
+		// Set Title TextView
+		TextView titleTextView = new TextView(actContext);
+		titleTextView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPixel(45)));
+		titleTextView.setPadding(toPixel(10), toPixel(10), toPixel(10), toPixel(5));
+		titleTextView.setText("Suggested Contacts");
+		titleTextView.setTextSize(22.0f);
+		titleTextView.setTextColor(0xff1080ee);
+		ll.addView(titleTextView);
+		
+		// Set Line TextView
+		TextView lineTextView = new TextView(actContext);
+		LinearLayout.LayoutParams titleLayoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, toPixel(2));
+		titleLayoutParams.setMargins(toPixel(2), toPixel(2), toPixel(2), toPixel(2));
+		lineTextView.setLayoutParams(titleLayoutParams);
+		lineTextView.setPadding(0, 0, 0, 0);
+		lineTextView.setBackgroundColor(0xff1080ee);
+		ll.addView(lineTextView);
+		
+		// Set ListView
+		CheckListView listView = new CheckListView(actContext);
+		listView.setLayoutParams(new ListView.LayoutParams(LayoutParams.MATCH_PARENT, displayHeight - toPixel(120)));
+		listView.setAdapter(menuAdapter);
+		listView.setFadingEdgeLength(0);
+        listView.setOnRefreshListener(new CheckListView.OnRefreshListener() {
+			
+			@Override
+			public void onRefresh() {
+				showView();
+			}
+        });
+		ll.addView(listView);
+		
+
+		// Set invite button
+		Button inviteButton = new Button(actContext);
+		LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, toPixel(40));
+		buttonLayoutParams.setMargins(toPixel(10), toPixel(10), toPixel(10), toPixel(10));
+		inviteButton.setLayoutParams(buttonLayoutParams);
+		inviteButton.setPadding(toPixel(5), toPixel(5), toPixel(5), toPixel(5));
+		inviteButton.setText("Invite");
+		inviteButton.setTextColor(0xff191970);
+		inviteButton.setTextSize(18);
+		inviteButton.setTypeface(null, Typeface.BOLD);
+		PaintDrawable buttonShape = new PaintDrawable();
+		buttonShape.setCornerRadius(20.0f);
+		buttonShape.getPaint().setColor(0xffffffff);
+		inviteButton.setBackgroundDrawable(buttonShape);
+		inviteButton.setOnClickListener( new View.OnClickListener() {
 
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
+			public void onClick(View inviteButton) {
 				
 				Thread a = new Thread() {
+
 					@Override
 					public void run() {
 						super.run();
-						handler.sendEmptyMessage(HANDLE_SHOW_LOADING);
-						
+
+						//save checked phone numbers
 						List<String> phoneList = new ArrayList<String>();
-						for (int i = 0; i < menuAdapter.getCount(); i++) {
-		
+						for (int i = 0; i < (menuAdapter.hasExtended ? menuAdapter.getCount() : menuAdapter.getCount() - 1); i++) {
+
 							CheckListViewItem chkListItem = (CheckListViewItem) menuAdapter
 									.getItem(i);
 							if (chkListItem.checkState) {
@@ -221,36 +365,62 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 							}
 						}
 						
+						//newReferral
 						if(phoneList.size() > 0) {
+							
+							handler.sendEmptyMessage(HANDLE_SHOW_LOADING);
+							
 							try {
-								Discoverer.getInstance().newReferral(phoneList, useVirtualNumber, null);
+								Discoverer.getInstance().newReferral(phoneList, useVirtualNumber, "John");
+
+								if (clickHandler != null)
+									clickHandler.onClick(phoneList);
 								
-								showMessage(new String[] {"Finished", "Referral Success.", "Dismiss"});
+								handler.sendEmptyMessage(HANDLE_SHOW_TOAST);
 							}
-							catch(AgeException e) {
+							catch(Exception e) {
 								showMessage(new String[] {"Error", e.getMessage() != null ? e.getMessage() : "Referral Error", "Dismiss"});
 							}
+						} else {
+							handler.sendEmptyMessage(HANDLE_SHOW_TOAST_WARNING);
 						}
+						
 						handler.sendEmptyMessage(HANDLE_HIDE_LOADING);
+						
 					}
 				};
 				a.start();
 				a = null;
+				
+				
 
 			}
-		});
-
-		dialog.setButton2("Cancel", new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				cleanup();
-			}
-		});
+		});	
+		ll.addView(inviteButton);
+		
+		// Add LinearLayout to dialog
+		dialog.setContentView(ll);
+		
+		// Create toast
+		toast = Toast.makeText(actContext, 
+				contactDeviceNotSupportedMsg,
+				Toast.LENGTH_LONG);
+		
+		LinearLayout linearLayout = null;
+	    linearLayout = (LinearLayout) toast.getView();
+	    TextView messageTextView = (TextView) linearLayout.getChildAt(0);
+	    messageTextView.setTextSize(20);
+	    messageTextView.setGravity(Gravity.CENTER);
+	    messageTextView.setTextColor(0xff00bfff);
+	    toast.setGravity(Gravity.CENTER, 0, 0);
 
 		return dialog;
 	}
 
+	/**
+	 * Discover and query leads. Populate ListView.
+	 * 
+	 */
 	public void showView() {
 		if (AgeUtils.isOnline(actContext)) {
 
@@ -259,7 +429,8 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 			Thread a = new Thread() {
 				@Override
 				public void run() {
-					super.run();
+					super.run();					
+					
 					handler.sendEmptyMessage(HANDLE_SHOW_LOADING);
 					
 					try {
@@ -269,14 +440,13 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 					} catch (AgeException e) {
 						 displayError(e);
 					}
-
-					handler.sendEmptyMessage(HANDLE_HIDE_LOADING);
+				
 					handler.sendMessage(handler.obtainMessage(SHOW_LIST_DIALOG));
+					handler.sendEmptyMessage(HANDLE_HIDE_LOADING);
 				}
 			};
 			a.start();
 			a = null;
-
 			
 		} else {
 			handler.sendMessage(handler.obtainMessage(SHOW_MESSAGE_DIALOG));
@@ -294,24 +464,27 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	}
 
 	public void cleanup() {
-		// handler.sendMessage(handler.obtainMessage(HIDE_LIST_DIALOG));
+
 		dialog.dismiss();
 		if (messageDialog != null)
 			messageDialog.dismiss();
 	}
 
+	/**
+	 * Populate ListView's adapter with data from queryLeads().
+	 * 
+	 * @param leadList
+	 */
 	private void addList(List<Lead> leadList) {
-
+		
 		for (Lead lead : leadList) {
 
 			String name = AgeUtils.lookupNameByPhone(actContext,
 					lead.getPhone());
-			if(name.length() > 18)
-				name = name.substring(0, 18) + "...";
-			
-			menuAdapter.addItem(name, lead.getPhone());
+
+				menuAdapter.addItem(name, lead.getPhone());
+
 		}
-		
 	}
 
 	private void showMessageDialog(String title, String message,
@@ -323,7 +496,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 		if (!AgeUtils.isEmptyStr(title)) {
 			messageDialog.setTitle(title);
 		}
-		messageDialog.setButton(buttonText1,
+		messageDialog.setButton(DialogInterface.BUTTON_POSITIVE, buttonText1,
 				new DialogInterface.OnClickListener() {
 
 					@Override
@@ -332,7 +505,7 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 					}
 				});
 		if (buttonText2 != null)
-			messageDialog.setButton2(buttonText2,
+			messageDialog.setButton(DialogInterface.BUTTON_NEGATIVE, buttonText2,
 					new DialogInterface.OnClickListener() {
 
 						@Override
@@ -374,6 +547,47 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
     			}
 			})
 			.show();
+	}
+	
+	private int toPixel(int dip) {
+		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip,
+				actContext.getResources().getDisplayMetrics());
+		return (int)px;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static int getResourceIdByName(String packageName, String className, String name) {
+		   Class r = null;
+		   int id = 0;
+		try {
+		    r = Class.forName(packageName + ".R");
+
+		    Class[] classes = r.getClasses();
+		    Class desireClass = null;
+
+		    for (int i = 0; i < classes.length; i++) {
+		        if(classes[i].getName().split("\\$")[1].equals(className)) {
+		            desireClass = classes[i];
+
+		            break;
+		        }
+		    }
+
+		    if(desireClass != null)
+		        id = desireClass.getField(name).getInt(desireClass);
+		} catch (ClassNotFoundException e) {
+		    e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+		    e.printStackTrace();
+		} catch (SecurityException e) {
+		    e.printStackTrace();
+		} catch (IllegalAccessException e) {
+		    e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+		    e.printStackTrace();
+		}
+
+		return id;
 	}
 
 }

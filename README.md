@@ -6,7 +6,7 @@ AGE Invitation UI is a drop-in Android control that you can deploy to your app w
 A sample app is included with this project that demonstrate AGE Invitation UI launched from a button.  Once you download and import the AgeUI folder into an Eclipse Android project, click on run.  You may launch the sample app in the emulator or your Android device.  Running on your Android phone is preferred because you are likely to have more contacts in your phone address book to invite from.    
 
 [![](https://dl.dropbox.com/s/yr0wcs0dpm79552/ageui_android1.png)](https://dl.dropbox.com/s/yr0wcs0dpm79552/ageui_android1.png)
-[![](https://dl.dropbox.com/s/6vq3rktozsin91w/ageui_android2.png)](https://dl.dropbox.com/s/6vq3rktozsin91w/ageui_android2.png)
+[![](https://dl.dropbox.com/s/oqk9v7ojsglgkn0/ageui_android3.png)](https://dl.dropbox.com/s/oqk9v7ojsglgkn0/ageui_android3.png)
 
 When AGE Invitation UI is invoked for first time, it will analyze the address book.  It may take a few seconds before the list of suggested contacts is displayed.  The list of contacts shown in the list is filtered by criteria you define for your app profile in our developer portal.  
 
@@ -35,10 +35,13 @@ Next, add the following permissions into your project's Manifest file:
 
 InvitationUI must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the InvitationUI component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
 * Define a class variable of type InvitationUI in the Activity class.  Name the variable invitationUI.  
-* Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 3 parameters:
+* Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 6 parameters:
 1. Host Activity
 2. App Key assigned by Hookmobile for your app
-3. Name for the AgeUI
+3. Display title of AgeUI popup
+4. SMS invitation mechanism: Phone native SMS or Virutal Number
+5. App assigned UserId.  UserId will be associated to the app install and referenced on server-callback to identify app install.
+6. Display contact photo
 * Modify <code>onPause()</code> methods to pass application state change event to AgeUI component.
 
 Below is an example of activity with modification to use the AgeUI Plug-in.
@@ -59,43 +62,51 @@ import com.hookmobile.ageui.InvitationUI;
 import com.hookmobile.ageui.InvitationListener;
 
 public class Sample extends Activity {
-
-	private String appKey = "b9ef3007-c9a9-459d-977a-a62125cf6b1e";
 	private Button showButton;
-	private InvitationUI invitationUI;
-    // set to false to send invitation via native SMS from the phone
-	private boolean useVirtualNumber = true;  
 
+	// AGE App key assigned to developer app at http://hookmobile.com developer portal.
+	private String appKey = "4992ca90-fcb9-4250-b0e1-947e611555a0";
+	// AGE Invitation UI Popup View
+	private InvitationUI invitationUI;
+	// Decide if invitation will be sent from Virtual Number or Phone Native SMS.
+	private boolean useVirtualNumber = true;
+	// Decide if contact photo will appear in the invitation list.
+	private boolean displayContactPhoto = false;
+	// Optional assignment of app generated user id to be associated to the app install.  
+	// This app generated user id will be referenced in server to server callback.
+	private String appUserId = "App-Assigned-User-Id-Here";
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
+		
+		// Instantiate the class variable.
+		invitationUI = new InvitationUI(this, appKey, "Suggested Contacts", useVirtualNumber, appUserId, displayContactPhoto);
 
-		invitationUI = new InvitationUI(this, appKey, "Get Points", useVirtualNumber);
-
-		showButton = (Button) findViewById(R.id.button1);
-		showButton.setText("Show AGE UI");
+		showButton = (Button) findViewById(R.id.show_button);
 
 		InvitationListener sendlistener = new InvitationListener() {
 
 			@Override
 			public void onClick(List&lt;String&gt; phoneList) {
-				System.out.println(phoneList.size());
+				// Print list of phone numbers invited by user.
+				System.out.println("Number of Invitations Sent: " + phoneList.size());
 				for(int i=0;i&lt;phoneList.size();i++){
-					System.out.println(phoneList.get(i));
+					System.out.println("Invited Phone: " + phoneList.get(i));
 				}
 			}
 		};
 		
+		// Register callback of successful invitation completion.
 		invitationUI.setInvitationListener(sendlistener);
 
+		// Show Invitation UI when button is clicked.
 		showButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
-
+				// display the invitation UI.
 				invitationUI.showView();
-
 			}
 		});
 

@@ -1,8 +1,7 @@
 <resources>
 
     <string name="app_name">AgeUI</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
+    <string name="show_button">Share App</string>
     <string name="title_activity_agepopup">AGE Invitation UI</string>
 
 </resources>

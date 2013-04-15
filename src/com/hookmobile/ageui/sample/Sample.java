@@ -13,47 +13,51 @@ import com.hookmobile.ageui.InvitationUI;
 import com.hookmobile.ageui.InvitationListener;
 
 public class Sample extends Activity {
-
-	private String appKey = "4992ca90-fcb9-4250-b0e1-947e611555a0";
 	private Button showButton;
-	private InvitationUI agepopupView;
-	
-	// set to false to send invitation via native SMS from the phone
-	private boolean useVirtualNumber = false;
 
+	// AGE App key assigned to developer app at http://hookmobile.com developer portal.
+	private String appKey = "4992ca90-fcb9-4250-b0e1-947e611555a0";
+	// AGE Invitation UI Popup View
+	private InvitationUI invitationUI;
+	// Decide if invitation will be sent from Virtual Number or Phone Native SMS.
+	private boolean useVirtualNumber = true;
+	// Decide if contact photo will appear in the invitation list.
+	private boolean displayContactPhoto = false;
+	// Optional assignment of app generated user id to be associated to the app install.  
+	// This app generated user id will be referenced in server to server callback.
+	private String appUserId = "App-Assigned-User-Id-Here";
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_agepopup);
+		
+		// Instantiate the class variable.
+		invitationUI = new InvitationUI(this, appKey, "Suggested Contacts", useVirtualNumber, appUserId, displayContactPhoto);
 
-		// agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber);
-
-		// *** USE following constructor to pass custom parameter such as app assigned user id to AGE to be correlated to specific app install. ***
-		agepopupView = new InvitationUI(this, appKey, "Get Points", useVirtualNumber, "custom parameter");
-
-		showButton = (Button) findViewById(R.id.button1);
-		showButton.setText("Show AGE Popup");
+		showButton = (Button) findViewById(R.id.show_button);
 
 		InvitationListener sendlistener = new InvitationListener() {
 
 			@Override
 			public void onClick(List<String> phoneList) {
-				System.out.println(phoneList.size());
+				// Print list of phone numbers invited by user.
+				System.out.println("Number of Invitations Sent: " + phoneList.size());
 				for(int i=0;i<phoneList.size();i++){
-					System.out.println(phoneList.get(i));
+					System.out.println("Invited Phone: " + phoneList.get(i));
 				}
 			}
 		};
 		
-		agepopupView.setInvitationListener(sendlistener);
+		// Register callback of successful invitation completion.
+		invitationUI.setInvitationListener(sendlistener);
 
+		// Show Invitation UI when button is clicked.
 		showButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
-
-				agepopupView.showView();
-
+				// display the invitation UI.
+				invitationUI.showView();
 			}
 		});
 
@@ -63,7 +67,7 @@ public class Sample extends Activity {
 	protected void onPause() {
 		super.onPause();
 
-		agepopupView.cleanup();
+		invitationUI.cleanup();
 	}
 
 }
