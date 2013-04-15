@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="AgeUI">
+    <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="../../../../Applications/eclipse_3.6.2"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+
+    <property name="src" value="src" />
+    <property name="lib" value="libs" />
+    <property name="build" value="bin" />
+    <property name="build.classes" value="${build}/classes" />
+    <property name="build.lib" value="." />
+    <property name="build.res" value="${build}/res" />
+	<property name="version" value="1.2.0" />
+	<property name="app" value="ageui" />
+	<property name="app.lib" value="${app}/libs" />
+	<property name="app.jar" value="${app}-${version}.jar" />
+
+
+	<path id="Android Dependencies.libraryclasspath">
+        <pathelement location="../../android-sdks/tools/support/annotations.jar"/>
+        <pathelement location="libs/libGoogleAnalytics.jar"/>
+        <pathelement location="libs/android-support-v4.jar"/>
+        <pathelement location="libs/age-1.1.5jar"/>
+    </path>
+    <path id="Android 4.0.3.libraryclasspath">
+        <pathelement location="../../android-sdks/platforms/android-15/android.jar"/>
+    </path>
+    <path id="AgeUI.classpath">
+        <pathelement location="bin/classes"/>
+        <path refid="Android Dependencies.libraryclasspath"/>
+        <path refid="Android 4.0.3.libraryclasspath"/>
+        <pathelement location="libs/android-support-v4.jar"/>
+        <pathelement location="libs/libGoogleAnalytics.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin/classes"/>
+        <copy includeemptydirs="false" todir="bin/classes">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="bin/classes">
+            <fileset dir="gen">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin/classes"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin/classes" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="AgeUI.classpath"/>
+        </javac>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin/classes" source="${source}" target="${target}">
+            <src path="gen"/>
+            <classpath refid="AgeUI.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="jar" depends="build">
+        <delete file="${build.lib}/${app.jar}" />
+        <jar jarfile="${build.lib}/${app.jar}">
+            <fileset dir="${build.classes}" excludes="com/hookmobile/ageui/sample, com/hookmobile/ageui/sample/*, **/R.class, , **/R$*.class"/>
+            <fileset dir="." includes="res/**/*.png" excludes="**/ic_launcher.png"/>
+        </jar>
+    </target>
+
+</project>
