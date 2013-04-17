@@ -30,7 +30,7 @@ Next, add the following permissions into your project's Manifest file:
     	&lt;uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"&gt;
     	&lt;uses-permission android:name="android.permission.ACCESS_WIFI_STATE"&gt;</code></pre>
 
-Lastly, please copy <a href="https://github.com/hookmobile/App-Growth-Engine-UI-Android/raw/master/age_styles.xml"  target="_blank">age_styles.xml</a> to your project <code>res/values/</code> folder.
+Lastly, please copy <a href="https://raw.github.com/hookmobile/App-Growth-Engine-UI-Android/master/res/values/age_styles.xml"  target="_blank">age_styles.xml</a> to your project <code>res/values/</code> folder.
 
 # Invoking Invitation Plug-in
 
