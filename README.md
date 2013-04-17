@@ -19,7 +19,7 @@ The message is completely customizable by you, and it can be further personalize
 # Integration Setup
 Now that you have a good understanding of the AGE Invitation UI, you are ready to integrate AGE Invitation UI into your app.  The first step is to <a href="http://www.hookmobile.com"  target="_blank">signup</a> for an App Key for your app at Hook Mobile developer portal. This App Key will be used in the next section when you start doing your integration.
 
-Next, you need to import the Agepopup.jar file into your application project and add it to the project buildpath. 
+Next, you need to import the <a href="https://github.com/hookmobile/App-Growth-Engine-UI-Android/raw/master/ageui-1.2.0.jar"  target="_blank">ageui-1.2.0.jar</a> and <a href="https://github.com/hookmobile/App-Growth-Engine-UI-Android/raw/master/libs/age-1.1.5.jar"  target="_blank">age-1.1.5.jar</a> into your application project and include them to the project library path. 
 
 Next, add the following permissions into your project's Manifest file:
 
@@ -30,18 +30,19 @@ Next, add the following permissions into your project's Manifest file:
     	&lt;uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"&gt;
     	&lt;uses-permission android:name="android.permission.ACCESS_WIFI_STATE"&gt;</code></pre>
 
+Lastly, please copy <a href="https://github.com/hookmobile/App-Growth-Engine-UI-Android/raw/master/age_styles.xml"  target="_blank">age_styles.xml</a> to your project <code>res/values/</code> folder.
 
-# Use the Invitation Plug-in
+# Invoking Invitation Plug-in
 
 InvitationUI must be added to an existing Activity within your app.  If you have multiple Activities within your Android App, you will have to decide which Activity will host the InvitationUI component.  Once you have determined the host Activity, you will need to modify the Activity Java source as follow:
 * Define a class variable of type InvitationUI in the Activity class.  Name the variable invitationUI.  
 * Modify the <code>onCreate()</code> within your Activity to initialize the tab variable.  In the AgeUI constructor, you will need to pass 6 parameters:
-1. Host Activity
-2. App Key assigned by Hookmobile for your app
-3. Display title of AgeUI popup
-4. SMS invitation mechanism: Phone native SMS or Virutal Number
-5. App assigned UserId.  UserId will be associated to the app install and referenced on server-callback to identify app install.
-6. Display contact photo
+	1. Host Activity
+	2. App Key assigned by Hookmobile for your app
+	3. Display title of AgeUI popup
+	4. SMS invitation mechanism: Phone native SMS or Virutal Number
+	5. App assigned UserId.  UserId will be associated to the app install and referenced on server-callback to identify app install.
+	6. Display contact photo
 * Modify <code>onPause()</code> methods to pass application state change event to AgeUI component.
 
 Below is an example of activity with modification to use the AgeUI Plug-in.
