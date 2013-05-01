@@ -57,8 +57,10 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 	private Toast toast;
 	private int displayWidth;
 	private int displayHeight;
+	private boolean firstTimeLoading = true;
+	
 	// Message shown when the contact's device doesn't support the app or the number is unavailable.
-	private static String contactDeviceNotSupportedMsg = "This user's device doesn't support this app.";
+	private static String contactDeviceNotSupportedMsg = "Not a mobile contact";
 
 	public static void setContactDeviceNotSupportedMsg(
 			String contactDeviceNotSupportedMsg) {
@@ -77,6 +79,13 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 				//Set dialog size
 				dialog.getWindow().setLayout(displayWidth, displayHeight);
 				dialog.show();
+				if (firstTimeLoading) {
+					toast.setText("Pull down to refresh");
+					toast.setDuration(Toast.LENGTH_SHORT);
+					toast.show();
+					firstTimeLoading = false;
+				}
+
 				break;
 			case HIDE_LIST_DIALOG:
 				dialog.dismiss();
@@ -435,10 +444,12 @@ public class InvitationUI implements DialogInterface.OnCancelListener,
 					
 					try {
 						Discoverer.getInstance().discover();
-						addList(Discoverer.getInstance().queryLeads());
-						
+						List<Lead> leads = Discoverer.getInstance().queryLeads();
+						addList(leads);
+						if (leads.size() == 0)
+							menuAdapter.extendListByAddressBook();
 					} catch (AgeException e) {
-						 displayError(e);
+						 //displayError(e);
 					}
 				
 					handler.sendMessage(handler.obtainMessage(SHOW_LIST_DIALOG));

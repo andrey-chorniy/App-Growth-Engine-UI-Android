@@ -361,7 +361,7 @@ class CheckListAdapter extends BaseAdapter {
 		return ll;
 	}
 	
-	private void extendListByAddressBook() {
+	void extendListByAddressBook() {
 
 		String lastName = null;
 		String firstName = null;
@@ -404,6 +404,7 @@ class CheckListAdapter extends BaseAdapter {
 			}
 		} finally {
 			contactCursor.close();
+			this.hasExtended = true;
 		}
 
 	}
