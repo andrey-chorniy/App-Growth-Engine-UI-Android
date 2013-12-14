@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.format.DateFormat;
+import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -33,7 +34,6 @@ public class CheckListView extends ListView implements OnScrollListener {
 	private final static int REFRESHING = 2;
 	private final static int DONE = 3;
 	
-	private Context context;
 	private LinearLayout headView;
 	private TextView tipsTextview;
 	private TextView lastUpdatedTextView;
@@ -55,13 +55,23 @@ public class CheckListView extends ListView implements OnScrollListener {
 	public OnRefreshListener refreshListener;
 	public CheckListView(Context context) {
 		super(context);
-		
-		this.context = context;
 		init(context);
 	}
 
-	private void init(Context context) {
+    public CheckListView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context);
+    }
 
+    public CheckListView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context);
+    }
+
+    private void init(Context context) {
+        if (isInEditMode()) {
+            return;
+        }
 		Bitmap mBitmap = BitmapFactory.decodeStream(CheckListView.class.getClassLoader().getResourceAsStream("res/drawable-mdpi/pulltorefresh_down_arrow.png"));
 		downArrowPNG = new BitmapDrawable(context.getResources(), Bitmap.createScaledBitmap(mBitmap, toPixel(20), toPixel(40), true));
 		
@@ -374,7 +384,7 @@ public class CheckListView extends ListView implements OnScrollListener {
 	
 	private int toPixel(int dip) {
 		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip,
-				context.getResources().getDisplayMetrics());
+				getContext().getResources().getDisplayMetrics());
 		return (int)px;
 	}
 }

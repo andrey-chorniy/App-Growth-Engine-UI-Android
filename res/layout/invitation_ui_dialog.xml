@@ -1,0 +1,65 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_alignParentTop="true" android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content" android:layout_height="45dp"
+        android:paddingTop="10dp" android:paddingRight="10dp"
+        android:paddingLeft="10dp" android:paddingBottom="5dp"
+        android:textSize="22sp"
+        android:visibility="gone"
+        android:text="Suggested Contacts"/>
+    <!--android:textColor="0xff1080ee"-->
+
+    <View
+        android:layout_below="@id/titleTextView"
+        android:visibility="gone"
+        android:id="@+id/lineView"
+        android:layout_width="match_parent" android:layout_height="1dp"
+        android:padding="0dp"
+        android:background="#323232"/>
+    <!--android:textColor="0xff1080ee"-->
+
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_margin="10dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:layout_alignParentBottom="true">
+        <LinearLayout android:id="@+id/editInviteAsControl"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:text="Invite As"/>
+            <EditText
+                android:id="@+id/inviterNameET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:text="John"/>
+        </LinearLayout>
+
+        <Button
+            android:layout_width="match_parent" android:layout_height="40dp"
+            android:padding="5dp" android:layout_marginTop="10dp"
+            android:textSize="18sp" android:textStyle="bold"
+            android:text="Invite" android:visibility="gone"
+            android:background="@drawable/invite_button_bg"/>
+    </LinearLayout>
+
+    <com.hookmobile.ageui.CheckListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/lineView" android:layout_above="@id/footer"
+        android:fadingEdgeLength="0px">
+
+    </com.hookmobile.ageui.CheckListView>
+
+
+</RelativeLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/contact_image"
+        android:layout_centerVertical="true" android:layout_alignParentLeft="true"
+        android:layout_width="50dp" android:layout_height="50dp" android:maxHeight="50dp" android:maxWidth="50dp"
+        android:adjustViewBounds="true" android:scaleType="centerInside"/>
+    <CheckBox
+        android:id="@+id/cbox"
+        android:layout_centerVertical="true" android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/contact_name"
+        android:layout_toRightOf="@id/contact_image" android:layout_toLeftOf="@id/cbox"
+        android:layout_centerVertical="true"
+        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp" android:layout_marginRight="5dp"
+        android:maxLines="2"
+        android:textSize="18sp"/>
+</RelativeLayout>

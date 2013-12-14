@@ -5,15 +5,14 @@ import java.util.ArrayList;
 
 import com.hookmobile.age.AgeException;
 import com.hookmobile.age.Discoverer;
+import com.hookmobile.ageui.sample.R;
+
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -21,10 +20,10 @@ import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -50,13 +49,16 @@ class CheckListAdapter extends BaseAdapter {
 	private int displayWidth;
 	public boolean hasExtended = false;
 	private boolean isDisplayPhoto = false;
-	
-	public CheckListAdapter(Context context, Handler handler, int displayWidth, boolean isDisplayPhoto) {
+    private LayoutInflater layoutInflater;
+
+    public CheckListAdapter(Context context, Handler handler, int displayWidth, boolean isDisplayPhoto) {
 		this.context = context;
 		this.handler = handler;
 		this.displayWidth = displayWidth;
 		this.isDisplayPhoto = isDisplayPhoto;
-		
+
+        layoutInflater = LayoutInflater.from(context);
+
 		InputStream is = CheckListAdapter.class.getClassLoader().getResourceAsStream("res/drawable-mdpi/contact.png");
 		if(is != null)
 			defaultContactPhoto = BitmapFactory.decodeStream(is);
@@ -220,60 +222,43 @@ class CheckListAdapter extends BaseAdapter {
 
 		TextView temp = null;
 		context.getResources();
-
+        ViewHolder viewHolder;
 		if (convertView == null) {
-
-			LinearLayout ll = new LinearLayout(context);
-			ll.setOrientation(LinearLayout.HORIZONTAL);
-			ll.setBackgroundColor(Color.BLACK);
-			ll.setGravity(android.view.Gravity.CENTER_VERTICAL);
-			ll.setPadding(0, 0, 0, 0);
+            View layout = layoutInflater.inflate(R.layout.contact_list_item, null);
+            viewHolder = new ViewHolder(item);
+//			LinearLayout ll = new LinearLayout(context);
+//			ll.setOrientation(LinearLayout.HORIZONTAL);
+//			ll.setBackgroundColor(Color.BLACK);
+//			ll.setGravity(android.view.Gravity.CENTER_VERTICAL);
+//			ll.setPadding(0, 0, 0, 0);
 
 			//ImageView
-			ImageView imageView = new ImageView(context); 
-			imageView.setAdjustViewBounds(true);
-			imageView.setMaxHeight(toPixel(50));
+			ImageView imageView = (ImageView) layout.findViewById(R.id.contact_image);
+            viewHolder.contactImage = imageView;
 			if (isDisplayPhoto) {
 				imageView.setMaxWidth(toPixel(50));
 				imageView.setMinimumWidth(toPixel(50));
 			} else {
-				imageView.setMaxWidth(0);
-				imageView.setMinimumWidth(toPixel(0));
+				imageView.setVisibility(View.GONE);
 			}
-			
-			ll.addView(imageView);
 
 			//TextView
-			temp = new TextView(context);
-			LinearLayout.LayoutParams param = new LinearLayout.LayoutParams(
-					displayWidth - toPixel(80) + (isDisplayPhoto ? 0 : toPixel(50)),
-					LayoutParams.WRAP_CONTENT);
-			temp.setLayoutParams(param);
-			temp.setPadding(toPixel(10), 0, 0, 0);
-			temp.setTextColor(Color.RED);
-			temp.setGravity(android.view.Gravity.CENTER_VERTICAL);
-			temp.setTextSize(18);
+            viewHolder.contactName = (TextView) layout.findViewById(R.id.contact_name);
 
-			ll.addView(temp);
-			
 			//CheckBox
-			final CheckBox cbox = new CheckBox(context);			
-			StateListDrawable d = new StateListDrawable();
-			Bitmap mBitmap = BitmapFactory.decodeStream(CheckListAdapter.class.getClassLoader().getResourceAsStream("res/drawable-mdpi/checked.png"));
-			Drawable png = new BitmapDrawable(context.getResources(), Bitmap.createScaledBitmap(mBitmap, toPixel(25), toPixel(25), true));
-			mBitmap.setDensity(200);
-			d.addState(new int[]{android.R.attr.state_checked}, png);
-			cbox.setButtonDrawable(d);
-			ll.addView(cbox);
+            viewHolder.cbox = (CheckBox) layout.findViewById(R.id.cbox);
 
-			convertView = ll;
-		}
+			convertView = layout;
+            convertView.setTag(viewHolder);
+		} else {
+            viewHolder = (ViewHolder)convertView.getTag();
+        }
 
-		LinearLayout ll = (LinearLayout) convertView;
+		ViewGroup ll = (ViewGroup) convertView;
 		
-		ImageView imageView = (ImageView) ll.getChildAt(0);
-		TextView textView = (TextView) ll.getChildAt(1);
-		final CheckBox cbox = (CheckBox) ll.getChildAt(2);
+//		ImageView imageView = viewHolder.contactImage;
+//		TextView textView = (TextView) ll.getChildAt(1);
+		final CheckBox cbox = viewHolder.cbox;
 
 		ll.setOnClickListener(new OnClickListener() {
 
@@ -334,28 +319,26 @@ class CheckListAdapter extends BaseAdapter {
 			cbox.setChecked(false);
 		cbox.setTag(item);
 
-		textView.setTag(item);
-		if(item.name.length() > 18)
-			textView.setText(item.name.substring(0, 18) + "...");
-		else
-			textView.setText(item.name);
+//		textView.setTag(item);
+        TextView textView = viewHolder.contactName;
+		textView.setText(item.name);
 		
 		boolean hasMobileNumber = item.phoneList.containsValue(true);
 		
-		if (hasMobileNumber)
-			textView.setTextColor(Color.WHITE);
-		else {
+		if (hasMobileNumber) {
+			textView.setTextColor(Color.BLACK);
+        } else {
 			textView.setTextColor(Color.GRAY);
 			ll.setClickable(false);
 			cbox.setClickable(false);
 		}
 
 		if (isDisplayPhoto) {
-			if (item.btContactImage != null) 
-				imageView.setImageBitmap(item.btContactImage);
+			if (item.btContactImage != null)
+                viewHolder.contactImage.setImageBitmap(item.btContactImage);
 
 		} else {
-			imageView.setVisibility(View.INVISIBLE);
+            viewHolder.contactImage.setVisibility(View.INVISIBLE);
 		}
 		
 		return ll;
@@ -427,4 +410,14 @@ class CheckListAdapter extends BaseAdapter {
 		return (int)px;
 	}
 
+    private static class ViewHolder {
+        ImageView contactImage;
+        TextView contactName;
+        CheckBox cbox;
+        CheckListViewItem item;
+
+        private ViewHolder(CheckListViewItem item) {
+            this.item = item;
+        }
+    }
 }

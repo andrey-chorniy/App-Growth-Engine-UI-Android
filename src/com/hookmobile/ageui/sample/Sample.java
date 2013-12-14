@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.hookmobile.ageui.sample.R;
 import com.hookmobile.ageui.InvitationUI;
 import com.hookmobile.ageui.InvitationListener;
 
